@@ -1,0 +1,867 @@
+import telebot
+from telebot import types
+import sqlite3 as sl
+import threading
+import os.path
+import json
+import re
+A_9 = ['A9018', 'A9125', 'A9296', 'A9360', 'A9443', 'A9532', 'A9680', 'A9789', 'A9864', 'A9981', 'A91036', 'A91198', 'A91239', 'A91373', 'A91449', 'A91513', 'A91665', 'A91726', 'A91863', 'A91963', 'A92041', 'A92156', 'A92221', 'A92385', 'A92489', 'A92516', 'A92661', 'A92793', 'A92847', 'A92968', 'A93055', 'A93153', 'A93263', 'A93329', 'A93470', 'A93569', 'A93693', 'A93782', 'A93847', 'A93938']
+A_10 = ['A10048', 'A10149', 'A10214', 'A10354', 'A10479', 'A10575', 'A10628', 'A10799', 'A10829', 'A10926', 'A101024', 'A101186', 'A101284', 'A101327', 'A101442', 'A101513', 'A101648', 'A101775', 'A101839', 'A101970', 'A102067', 'A102165', 'A1022100', 'A102389', 'A102420', 'A102549', 'A102629', 'A102790', 'A102839', 'A102933', 'A103058', 'A103175', 'A103245', 'A103396', 'A103433', 'A103511', 'A103660', 'A103768', 'A103853', 'A103949']
+A_11 = ['A11019', 'A11196', 'A11213', 'A11379', 'A11436', 'A11533', 'A11654', 'A11764', 'A11873', 'A11941', 'A111065', 'A111177', 'A111243', 'A111315', 'A111478', 'A111514', 'A111631', 'A111783', 'A111833', 'A111915', 'A112025', 'A1121100', 'A112265', 'A112317', 'A112490', 'A112532', 'A112625', 'A112741', 'A112854', 'A112917', 'A113081', 'A113160', 'A113248', 'A113319', 'A113497', 'A113576', 'A113686', 'A113749', 'A113832', 'A113959']
+B_9 = ['B9070', 'B9177', 'B9278', 'B9379', 'B9414', 'B9527', 'B9690', 'B9755', 'B9842', 'B9929', 'B91066', 'B91198', 'B91277', 'B91377', 'B91446', 'B91577', 'B91612', 'B91793', 'B91895', 'B91957', 'B92043', 'B92129', 'B92246', 'B92372', 'B92462', 'B92597', 'B92633', 'B927100', 'B92880', 'B92935', 'B93063', 'B93165', 'B93299', 'B93323', 'B93451', 'B93548', 'B93611', 'B93740', 'B93878', 'B93947']
+B_10 = ['B10033', 'B10155', 'B10240', 'B10327', 'B10466', 'B10573', 'B10684', 'B10713', 'B10898', 'B10991', 'B101022', 'B101120', 'B101292', 'B101320', 'B101474', 'B101579', 'B101657', 'B101733', 'B101887', 'B101957', 'B102079', 'B102148', 'B102279', 'B102345', 'B102436', 'B102527', 'B102614', 'B102785', 'B102843', 'B102945', 'B103085', 'B103186', 'B103283', 'B103363', 'B103442', 'B103593', 'B103678', 'B103780', 'B103870', 'B103936']
+B_11 = ['B11099', 'B11124', 'B11277', 'B11318', 'B11415', 'B11596', 'B11663', 'B11772', 'B11895', 'B11993', 'B111081', 'B111197', 'B111219', 'B111348', 'B111440', 'B111569', 'B111682', 'B111792', 'B111827', 'B111983', 'B112034', 'B112189', 'B112220', 'B112328', 'B112422', 'B1125100', 'B112646', 'B112726', 'B112853', 'B112959', 'B113056', 'B113163', 'B113270', 'B113319', 'B113443', 'B113511', 'B113632', 'B113774', 'B113819', 'B113927']
+V_9 = ['V9034', 'V9129', 'V9258', 'V9393', 'V9430', 'V9565', 'V9625', 'V9738', 'V9852', 'V9922', 'V91093', 'V91148', 'V91246', 'V91370', 'V91452', 'V91579', 'V91635', 'V91774', 'V91828', 'V91961', 'V92056', 'V92171', 'V92221', 'V92339', 'V92439', 'V92564', 'V92668', 'V92797', 'V92865', 'V92957', 'V93063', 'V93190', 'V93266', 'V93359', 'V93453', 'V93552', 'V93634', 'V93735', 'V93863', 'V93977']
+V_10 = ['V10039', 'V10158', 'V10243', 'V10375', 'V10495', 'V10595', 'V10632', 'V10797', 'V10877', 'V10933', 'V101098', 'V101115', 'V101212', 'V101314', 'V101423', 'V101525', 'V101680', 'V101770', 'V101880', 'V101995', 'V102084', 'V102170', 'V102257', 'V102320', 'V102429', 'V102576', 'V102611', 'V102716', 'V102816', 'V102964', 'V103020', 'V103127', 'V103249', 'V103335', 'V103440', 'V103550', 'V103676', 'V103713', 'V103867', 'V103914']
+V_11 = ['V11087', 'V11175', 'V11232', 'V11317', 'V11417', 'V11550', 'V11619', 'V11788', 'V11819', 'V11968', 'V111050', 'V111193', 'V111272', 'V111319', 'V111473', 'V111523', 'V111657', 'V111766', 'V111838', 'V111937', 'V112080', 'V112146', 'V112252', 'V112331', 'V112470', 'V112589', 'V112638', 'V112731', 'V112891', 'V112949', 'V113054', 'V113183', 'V113271', 'V113373', 'V113486', 'V113538', 'V113647', 'V113787', 'V113830', 'V113976']
+G_9 = ['G9059', 'G9146', 'G9239', 'G9364', 'G9496', 'G9532', 'G9637', 'G9778', 'G9822', 'G9960', 'G91060', 'G911100', 'G91219', 'G91316', 'G91411', 'G91587', 'G91688', 'G91733', 'G91851', 'G91998', 'G92066', 'G92199', 'G92275', 'G92380', 'G92457', 'G92544', 'G92624', 'G92781', 'G92850', 'G92975', 'G93030', 'G93142', 'G93225', 'G93317', 'G934100', 'G93576', 'G93631', 'G93723', 'G93864', 'G93921']
+G_10 = ['G10054', 'G10120', 'G10251', 'G10361', 'G10478', 'G10572', 'G10638', 'G10790', 'G10823', 'G10939', 'G101062', 'G101130', 'G101271', 'G101377', 'G101431', 'G101517', 'G101662', 'G101744', 'G101886', 'G101937', 'G102016', 'G102185', 'G102254', 'G102385', 'G102468', 'G102550', 'G102642', 'G102723', 'G102871', 'G102999', 'G103062', 'G103153', 'G103298', 'G103377', 'G103448', 'G103560', 'G103695', 'G103731', 'G103867', 'G1039100']
+codes_for_admin = ['ADMCOOL0100', 'ADMCOOL187', 'ADMCOOL272', 'ADMCOOL393', 'ADMCOOL431', 'ADMCOOL522', 'ADMCOOL643', 'ADMCOOL793', 'ADMCOOL850', 'ADMCOOL991', 'ADMCOOL1018', 'ADMCOOL1197', 'ADMCOOL1226', 'ADMCOOL1317', 'ADMCOOL1445', 'ADMCOOL1587', 'ADMCOOL1658', 'ADMCOOL1721', 'ADMCOOL1816', 'ADMCOOL1997', 'ADMCOOL2027', 'ADMCOOL2129', 'ADMCOOL2262', 'ADMCOOL2340', 'ADMCOOL2421', 'ADMCOOL2531', 'ADMCOOL2688', 'ADMCOOL2779', 'ADMCOOL2898', 'ADMCOOL2944', 'ADMCOOL3026', 'ADMCOOL3117', 'ADMCOOL3235', 'ADMCOOL3327', 'ADMCOOL3450', 'ADMCOOL3561', 'ADMCOOL3674', 'ADMCOOL3720', 'ADMCOOL3819', 'ADMCOOL3911']
+bot = telebot.TeleBot('')
+bot.set_webhook()
+
+db = sl.connect('DSS_test (1).db', check_same_thread=False)
+c = db.cursor()
+
+# c.execute("INSERT INTO Ucheniki VALUES(612124689, 'Андрей', '11Б', 'Литература')")
+c.execute("SELECT TchId FROM YYY ")
+admins_from_BD = c.fetchall()
+'''
+c.execute("""CREATE TABLE IF NOT EXISTS Metrics(
+   menu_count integer,
+   messag_ecount integer
+   )""")
+'''
+db.commit()
+
+global Students_for_message
+Students_for_message = []
+
+global list_of_admins
+list_of_admins = list()
+
+for i in range(0, len(admins_from_BD)):
+    list_of_admins.append(admins_from_BD[i][0])
+
+global list_of_tags
+list_of_tags = list()
+global list_of_tags_A
+list_of_tags_A = list()
+for elem in c.execute("SELECT * FROM Tags"):
+    list_of_tags.append(elem[0])
+    list_of_tags_A.append(elem[0])
+
+c = db.cursor()
+global tags_of_admin
+tags_of_admin = list()
+
+global tag_check
+tag_check = 0
+
+abcd = ["/start", "Меню"]
+
+c.execute("SELECT TgId FROM Ucheniki")
+sdd = c.fetchall()
+global uchenikis
+uchenikis = list()
+for i in range(len(sdd)):
+    uchenikis.append(sdd[i][0])
+
+
+#буква А - английская
+@bot.message_handler(func=lambda message: message.text == '/start')
+def starting_bot(message):
+    if message.from_user.id not in uchenikis and message.from_user.id not in list_of_admins:
+        bot.send_message(message.chat.id, 'Введите ваш уникальный код')
+    else:
+        menu_eew(message)
+
+@bot.message_handler(func=lambda message: message.text in A_10)
+def message_reply_for_student_10a(message):
+    if message.from_user.id not in uchenikis and message.from_user.id not in list_of_admins and message.text in A_10:
+        c.execute("INSERT INTO Ucheniki VALUES(?, '', '', '')", (message.from_user.id,))
+        c.execute("UPDATE Ucheniki SET class = '10A' WHERE TgId = ?", (message.from_user.id,))
+        c.execute("SELECT TgId FROM Ucheniki")
+        db.commit()
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+        go_menu = types.KeyboardButton('Меню')
+        markup.add(go_menu)
+        bot.send_message(message.chat.id, 'Добро пожаловать ученик 10А. Перейдите в меню чтобы начать работу.', reply_markup=markup)
+        return
+    classes_for_message.clear()
+    tags_of_admin.clear()
+    Students_for_message.clear()
+@bot.message_handler(func=lambda message: message.text in A_11)
+def message_reply_for_student_11a(message):
+    if message.from_user.id not in uchenikis and message.from_user.id not in list_of_admins and message.text in A_11:
+        c.execute("INSERT INTO Ucheniki VALUES(?, '', '', '')", (message.from_user.id,))
+        c.execute("UPDATE Ucheniki SET class = '11A' WHERE TgId = ?", (message.from_user.id,))
+        c.execute("SELECT TgId FROM Ucheniki")
+        db.commit()
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+        go_menu = types.KeyboardButton('Меню')
+        markup.add(go_menu)
+        bot.send_message(message.chat.id, 'Добро пожаловать ученик 11А. Перейдите в меню чтобы начать работу.', reply_markup=markup)
+        return
+    classes_for_message.clear()
+    tags_of_admin.clear()
+    Students_for_message.clear()
+@bot.message_handler(func=lambda message: message.text in A_9)
+def message_reply_for_student_9a(message):
+    if message.from_user.id not in uchenikis and message.from_user.id not in list_of_admins and message.text in A_9:
+        c.execute("INSERT INTO Ucheniki VALUES(?, '', '', '')", (message.from_user.id,))
+        c.execute("UPDATE Ucheniki SET class = '9A' WHERE TgId = ?", (message.from_user.id,))
+        c.execute("SELECT TgId FROM Ucheniki")
+        db.commit()
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+        go_menu = types.KeyboardButton('Меню')
+        markup.add(go_menu)
+        bot.send_message(message.chat.id, 'Добро пожаловать ученик 9А. Перейдите в меню чтобы начать работу.', reply_markup=markup)
+        return
+    classes_for_message.clear()
+    tags_of_admin.clear()
+    Students_for_message.clear()
+#####################################################################################
+@bot.message_handler(func=lambda message: message.text in B_10)
+def message_reply_for_student_10b(message):
+    if message.from_user.id not in uchenikis and message.from_user.id not in list_of_admins and message.text in B_10:
+        c.execute("INSERT INTO Ucheniki VALUES(?, '', '', '')", (message.from_user.id,))
+        c.execute("UPDATE Ucheniki SET class = '10Б' WHERE TgId = ?", (message.from_user.id,))
+        c.execute("SELECT TgId FROM Ucheniki")
+        db.commit()
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+        go_menu = types.KeyboardButton('Меню')
+        markup.add(go_menu)
+        bot.send_message(message.chat.id, 'Добро пожаловать ученик 10Б. Перейдите в меню чтобы начать работу.', reply_markup=markup)
+        return
+    classes_for_message.clear()
+    tags_of_admin.clear()
+    Students_for_message.clear()
+@bot.message_handler(func=lambda message: message.text in B_11)
+def message_reply_for_student_11b(message):
+    if message.from_user.id not in uchenikis and message.from_user.id not in list_of_admins and message.text in b_11:
+        c.execute("INSERT INTO Ucheniki VALUES(?, '', '', '')", (message.from_user.id,))
+        c.execute("UPDATE Ucheniki SET class = '11Б' WHERE TgId = ?", (message.from_user.id,))
+        c.execute("SELECT TgId FROM Ucheniki")
+        db.commit()
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+        go_menu = types.KeyboardButton('Меню')
+        markup.add(go_menu)
+        bot.send_message(message.chat.id, 'Добро пожаловать ученик 11Б. Перейдите в меню чтобы начать работу.', reply_markup=markup)
+        return
+    classes_for_message.clear()
+    tags_of_admin.clear()
+    Students_for_message.clear()
+@bot.message_handler(func=lambda message: message.text in B_9)
+def message_reply_for_student_9b(message):
+    if message.from_user.id not in uchenikis and message.from_user.id not in list_of_admins and message.text in B_9:
+        c.execute("INSERT INTO Ucheniki VALUES(?, '', '', '')", (message.from_user.id,))
+        c.execute("UPDATE Ucheniki SET class = '9Б' WHERE TgId = ?", (message.from_user.id,))
+        c.execute("SELECT TgId FROM Ucheniki")
+        db.commit()
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+        go_menu = types.KeyboardButton('Меню')
+        markup.add(go_menu)
+        bot.send_message(message.chat.id, 'Добро пожаловать ученик 9Б. Перейдите в меню чтобы начать работу.', reply_markup=markup)
+        return
+    classes_for_message.clear()
+    tags_of_admin.clear()
+    Students_for_message.clear()
+#########################################################################################################################################
+@bot.message_handler(func=lambda message: message.text in V_10)
+def message_reply_for_student_10v(message):
+    if message.from_user.id not in uchenikis and message.from_user.id not in list_of_admins and message.text in V_10:
+        c.execute("INSERT INTO Ucheniki VALUES(?, '', '', '')", (message.from_user.id,))
+        c.execute("UPDATE Ucheniki SET class = '10В' WHERE TgId = ?", (message.from_user.id,))
+        c.execute("SELECT TgId FROM Ucheniki")
+        db.commit()
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+        go_menu = types.KeyboardButton('Меню')
+        markup.add(go_menu)
+        bot.send_message(message.chat.id, 'Добро пожаловать ученик 10В. Перейдите в меню чтобы начать работу.', reply_markup=markup)
+        return
+    classes_for_message.clear()
+    tags_of_admin.clear()
+    Students_for_message.clear()
+@bot.message_handler(func=lambda message: message.text in V_11)
+def message_reply_for_student_11v(message):
+    if message.from_user.id not in uchenikis and message.from_user.id not in list_of_admins and message.text in V_11:
+        c.execute("INSERT INTO Ucheniki VALUES(?, '', '', '')", (message.from_user.id,))
+        c.execute("UPDATE Ucheniki SET class = '11В' WHERE TgId = ?", (message.from_user.id,))
+        c.execute("SELECT TgId FROM Ucheniki")
+        db.commit()
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+        go_menu = types.KeyboardButton('Меню')
+        markup.add(go_menu)
+        bot.send_message(message.chat.id, 'Добро пожаловать ученик 11В. Перейдите в меню чтобы начать работу.', reply_markup=markup)
+        return
+    classes_for_message.clear()
+    tags_of_admin.clear()
+    Students_for_message.clear()
+
+@bot.message_handler(func=lambda message: message.text in V_9)
+def message_reply_for_student_9v(message):
+    if message.from_user.id not in uchenikis and message.from_user.id not in list_of_admins and message.text in V_9:
+        c.execute("INSERT INTO Ucheniki VALUES(?, '', '', '')", (message.from_user.id,))
+        c.execute("UPDATE Ucheniki SET class = '9В' WHERE TgId = ?", (message.from_user.id,))
+        c.execute("SELECT TgId FROM Ucheniki")
+        db.commit()
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+        go_menu = types.KeyboardButton('Меню')
+        markup.add(go_menu)
+        bot.send_message(message.chat.id, 'Добро пожаловать ученик 9В. Перейдите в меню чтобы начать работу.', reply_markup=markup)
+        return
+    classes_for_message.clear()
+    tags_of_admin.clear()
+    Students_for_message.clear()
+########################################################################################################################
+@bot.message_handler(func=lambda message: message.text in G_9)
+def message_reply_for_student_9g(message):
+    if message.from_user.id not in uchenikis and message.from_user.id not in list_of_admins and message.text in G_9:
+        c.execute("INSERT INTO Ucheniki VALUES(?, '', '', '')", (message.from_user.id,))
+        c.execute("UPDATE Ucheniki SET class = '9Г' WHERE TgId = ?", (message.from_user.id,))
+        c.execute("SELECT TgId FROM Ucheniki")
+        db.commit()
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+        go_menu = types.KeyboardButton('Меню')
+        markup.add(go_menu)
+        bot.send_message(message.chat.id, 'Добро пожаловать ученик 9Г. Перейдите в меню чтобы начать работу.', reply_markup=markup)
+        return
+    classes_for_message.clear()
+    tags_of_admin.clear()
+    Students_for_message.clear()
+
+@bot.message_handler(func=lambda message: message.text in G_10)
+def message_reply_for_student_10g(message):
+    if message.from_user.id not in uchenikis and message.from_user.id not in list_of_admins and message.text in V_10:
+        c.execute("INSERT INTO Ucheniki VALUES(?, '', '', '')", (message.from_user.id,))
+        c.execute("UPDATE Ucheniki SET class = '10Г' WHERE TgId = ?", (message.from_user.id,))
+        c.execute("SELECT TgId FROM Ucheniki")
+        db.commit()
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+        go_menu = types.KeyboardButton('Меню')
+        markup.add(go_menu)
+        bot.send_message(message.chat.id, 'Добро пожаловать ученик 10Г. Перейдите в меню чтобы начать работу.', reply_markup=markup)
+        return
+    classes_for_message.clear()
+    tags_of_admin.clear()
+    Students_for_message.clear()
+########################################################################################################################
+@bot.message_handler(func=lambda message: message.text in codes_for_admin)
+def message_reply_for_admin(message):
+    if message.from_user.id not in uchenikis and message.from_user.id not in list_of_admins and message.text in codes_for_admin:
+        c.execute("INSERT INTO YYY VALUES(?, '')", (message.from_user.id,))
+        db.commit()
+
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+        admin_s = types.KeyboardButton('Меню')
+
+
+        markup.add(admin_s)
+        bot.send_message(message.chat.id, 'Добро пожаловать. Перейдите в меню чтобы начать работу.', reply_markup=markup)
+        list_of_admins.append(message.from_user.id)
+    classes_for_message.clear()
+    tags_of_admin.clear()
+    Students_for_message.clear()
+
+
+@bot.message_handler(func=lambda message: message.text == 'Меню' or message.text == "/start")
+def menu_eew(message):
+    global tags_edit_c
+    tags_edit_c = 0
+    classes_for_message.clear()
+    tags_of_admin.clear()
+    Students_for_message.clear()
+    tag_check = 0
+    if message.from_user.id not in list_of_admins:
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+        tags_edit = types.KeyboardButton('Просмотреть/изменить теги')
+        mistake = types.KeyboardButton('Сообщить о ошибке')
+        back_to_menu = types.KeyboardButton('Меню')
+        markup.add(mistake, back_to_menu, tags_edit)
+        bot.send_message(message.chat.id, '0_o', reply_markup=markup)
+        button_list = []
+        for each in list_of_tags_A:
+            button_list.append(types.InlineKeyboardButton(text=each, callback_data=each))
+        reply_markup = types.InlineKeyboardMarkup(build_menu(button_list, n_cols=2))
+        bot.send_message(chat_id=message.from_user.id, text='Выберите теги, исходя из них вам будут приходить новости',
+                         reply_markup=reply_markup)
+    if message.from_user.id in list_of_admins:
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=3)
+        tags_choise = types.KeyboardButton('Написать сообщение')
+        tags_update = types.KeyboardButton('Добавить новый тег')
+        back_to_menu = types.KeyboardButton('Меню')
+        mistake = types.KeyboardButton('Сообщить о ошибке')
+        markup.add(tags_choise, tags_update, back_to_menu, mistake)
+        bot.send_message(message.chat.id,
+                         'Здравствуйте уважаемый Администратор школы! Вы можете написать сообщение разным классам или всем сразу',
+                         reply_markup=markup)
+
+
+@bot.message_handler(func=lambda message: message.text == 'Просмотреть/изменить теги')
+def tags_edit_for_student(message):
+    global tags_edit_c
+    tags_edit_c = 1
+    button_list = []
+    if message.from_user.id not in list_of_admins:
+        tags_of_student = list()
+        c.execute("SELECT Tagi FROM Ucheniki WHERE TgId = ?",(message.from_user.id,))
+        tags = c.fetchone()[0]
+        if 'ОБЖ' in tags:
+            tags = tags.replace('ОБЖ','')
+            tags_of_student.append('ОБЖ')
+        if 'ОДКНР' in tags:
+            tags = tags.replace('ОДКНР','')
+            tags_of_student.append('ОДКНР')
+        if 'РНМЗ' in tags:
+            tags = tags.replace('РНМЗ','')
+            tags_of_student.append('РНМЗ')
+        for elem in re.findall('[А-Я][^А-Я]*', tags):
+            tags_of_student.append(elem)
+        for each in tags_of_student:
+            button_list.append(types.InlineKeyboardButton(text=each, callback_data=each))
+        reply_markup = types.InlineKeyboardMarkup(build_menu(button_list, n_cols=2))
+        bot.send_message(chat_id=message.from_user.id, text='Нажмите на тег если хотите его удалить, или вернитесь в меню',reply_markup=reply_markup)
+
+
+
+
+
+
+
+@bot.message_handler(func=lambda message: message.text == "Добавить новый тег в базу данных")
+def tas_choise(message):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=3)
+    global tag_check
+    tag_check = 1
+    back_to_menu = types.KeyboardButton('Меню')
+    markup.add(back_to_menu)
+    bot.send_message(message.chat.id, 'Введите тег который хотите добавить в базу данных бота', reply_markup=markup)
+
+
+@bot.message_handler(func=lambda message: message.text == "Написать сообщение")
+def tags_choise(message):
+    global message_for_tags
+    message_for_tags = message
+    if 'Всем' not in list_of_tags and '/Выбрать_классы' not in list_of_tags and 'Отменить' not in list_of_tags and message.chat.id in list_of_admins:
+        list_of_tags.append('Всем')
+        list_of_tags.append('/Выбрать_классы')
+        list_of_tags.append('Отменить')
+    button_list = []
+    for each in list_of_tags:
+        button_list.append(types.InlineKeyboardButton(text=each, callback_data=each))
+    reply_markup = types.InlineKeyboardMarkup(build_menu(button_list, n_cols=2))
+    bot.send_message(chat_id=message.from_user.id, text='Выберите теги которые хотите добавить.', reply_markup=reply_markup)
+
+
+@bot.callback_query_handler(func=lambda call: True)
+def answer(call):
+    global tags_of_admin
+    global user_id
+    global tags_edit_c
+
+    user_id = call.from_user.id
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    if call.data == 'Отменить':
+        tags_of_admin.clear()
+        bot.send_message(user_id, text='Теги сброшены')
+        bot.answer_callback_query(call.id)
+    elif call.data == 'Всем':
+        tags_of_admin.append('!')
+        bot.send_message(user_id,
+                         'Введите текст сообщения или отправте фото с описанием, также вы можете отправить документ')
+        bot.answer_callback_query(call.id)
+    elif call.data == '/Выбрать_классы' and user_id in list_of_admins:
+        if len(tags_of_admin) == 0:
+            tags_of_admin.append('0')
+        mes_clas1(user_id)
+        bot.answer_callback_query(call.id)
+
+    else:
+        if user_id not in list_of_admins:
+            c.execute("SELECT Tagi FROM Ucheniki WHERE TgId = ?", (user_id,))
+            student_tags = c.fetchone()[0]
+            if tags_edit_c == 1:
+                button_list = []
+                tags_of_student = []
+                edited_tags = student_tags.replace(call.data, '')
+                c.execute("UPDATE Ucheniki SET Tagi = ? WHERE TgId = ?",(edited_tags, call.from_user.id))
+                db.commit()
+                if 'ОБЖ' in edited_tags:
+                    edited_tags = edited_tags.replace('ОБЖ','')
+                    tags_of_student.append('ОБЖ')
+                if 'ОДКНР' in edited_tags:
+                    edited_tags = edited_tags.replace('ОДКНР','')
+                    tags_of_student.append('ОДКНР')
+                if 'РНМЗ' in edited_tags:
+                    edited_tags = edited_tags.replace('РНМЗ','')
+                    tags_of_student.append('РНМЗ')
+                for elem in re.findall('[А-Я][^А-Я]*', edited_tags):
+                    tags_of_student.append(elem)
+                for each in tags_of_student:
+                    button_list.append(types.InlineKeyboardButton(text=each, callback_data=each))
+                reply_markup = types.InlineKeyboardMarkup(build_menu(button_list, n_cols=2))
+                bot.send_message(chat_id=call.from_user.id, text='Выберите теги которые хотите добавить.', reply_markup=reply_markup)
+            if call.data in student_tags:
+                if tags_edit_c == 1:
+                    bot.send_message(user_id, 'Тег ' + call.data + ' удален')
+                else:
+                    bot.send_message(user_id, 'Вы уже выбрали ' + call.data + ' 0_o')
+            if call.data not in student_tags and tags_edit_c == 0:
+                student_tags += call.data
+                print(student_tags)
+                c.execute("UPDATE Ucheniki SET Tagi = ? WHERE TgId = ?", (student_tags, user_id,))
+                bot.send_message(user_id, 'Тег ' + call.data + ' добавлен!')
+                db.commit()
+        else:
+            if call.data not in tags_of_admin:
+                tags_of_admin.append(call.data)
+        bot.answer_callback_query(call.id)
+
+
+def build_menu(buttons, n_cols, header_buttons=None, footer_buttons=None):
+    menu = [buttons[i:i + n_cols] for i in range(0, len(buttons), n_cols)]
+    if header_buttons:
+        menu.insert(0, header_buttons)
+    if footer_buttons:
+        menu.append(footer_buttons)
+    return menu
+
+
+global classes_for_message
+classes_for_message = []  # classes_for_message.append('')
+
+
+# ===============================================================
+
+@bot.message_handler(func=lambda message: message.text == "Написать сообщение" or message.text == "К выбору классов")
+def mes_clas1(message):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    choose_9 = types.KeyboardButton('Девятым')
+    choose_10 = types.KeyboardButton('Десятым')
+    choose_11 = types.KeyboardButton('Одиннадцатым')
+    done = types.KeyboardButton('Написать сообщение по выбранным классам')
+    clearr_spisok = types.KeyboardButton('Сбросить выбранные классы')
+    mes_clas_all = types.KeyboardButton('Написать всем')
+    back_to_menu = types.KeyboardButton('Меню')
+    markup.add(choose_9, choose_10, choose_11, mes_clas_all, clearr_spisok, done, back_to_menu)
+    bot.send_message(user_id, 'Каким классам написать?', reply_markup=markup)
+
+
+@bot.message_handler(func=lambda message: message.text == "Написать сообщение" or message.text == "К выбору классов")
+def mes_clas(message):
+    user_id = message.from_user.id
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    choose_9 = types.KeyboardButton('9')
+    choose_10 = types.KeyboardButton('10')
+    choose_11 = types.KeyboardButton('11')
+    done = types.KeyboardButton('Написать сообщение по выбранным классам')
+    clearr_spisok = types.KeyboardButton('Сбросить выбранные классы')
+    mes_clas_all = types.KeyboardButton('Написать всем')
+    back_to_menu = types.KeyboardButton('Меню')
+    markup.add(choose_9, choose_10, choose_11, mes_clas_all, clearr_spisok, done, back_to_menu)
+    bot.send_message(user_id, 'Каким классам написать?', reply_markup=markup)
+
+
+@bot.message_handler(func=lambda message: message.text == "Написать всем")
+def mes_clas_all(message):
+    classes_for_message.append('91011')  # добавляем класс в список
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+    #back_to_clas_choosing = types.KeyboardButton('К выбору классов')
+    #markup.add(back_to_clas_choosing)
+    bot.send_message(message.chat.id,
+                     'Мы запомнили классы.',
+                     reply_markup=markup)
+    mes_clas(message)
+
+
+@bot.message_handler(func=lambda message: message.text == "Написать сообщение по выбранным классам")
+def sending_mess(message):
+    # пересыл сообщения + classes_for_message это строка с классами которые выбрали а потом очистка этой строки
+    bot.send_message(message.chat.id,
+                     'Введите текст сообщения или отправте фото с описанием, также вы можете отправить документ')
+
+
+@bot.message_handler(func=lambda message: message.text == "Сбросить выбранные классы")
+def cleaning_spisok(message):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+    classes_for_message.clear()
+    back_to_clas_choosing = types.KeyboardButton('К выбору классов')
+    markup.add(back_to_clas_choosing)
+    bot.send_message(message.chat.id, 'Список классов очищен')
+
+
+@bot.message_handler(func=lambda message: message.text == "Девятым")
+def mes_clas_9(message):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+    choose_9_A = types.KeyboardButton('9А')
+    choose_9_B = types.KeyboardButton('9Б')
+    choose_9_V = types.KeyboardButton('9В')
+    choose_9_G = types.KeyboardButton('9Г')
+    choose_9_all = types.KeyboardButton('Всем 9 классам')
+    back_to_clas_choosing = types.KeyboardButton('К выбору классов')
+    markup.add(choose_9_A, choose_9_B, choose_9_V, choose_9_G, choose_9_all, back_to_clas_choosing)
+    bot.send_message(message.chat.id, 'Какому классу написать?', reply_markup=markup)
+
+
+@bot.message_handler(func=lambda message: message.text == "9А")
+def mes_clas_9A(message):
+    classes_for_message.append('9А')  # добавляем класс в список
+    print(classes_for_message)
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+    back_to_clas_choosing = types.KeyboardButton('К выбору классов')
+    markup.add(back_to_clas_choosing)
+    bot.send_message(message.chat.id,
+                     'Мы запомнили класс.',
+                     reply_markup=markup)
+    mes_clas(message)
+
+
+@bot.message_handler(func=lambda message: message.text == "9Б")
+def mes_clas_9B(message):
+    classes_for_message.append('9Б')  # добавляем класс в список
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+    back_to_clas_choosing = types.KeyboardButton('К выбору класова')
+    markup.add(back_to_clas_choosing)
+    bot.send_message(message.chat.id,
+                     'Мы запомнили класс.',
+                     reply_markup=markup)
+    mes_clas(message)
+
+
+@bot.message_handler(func=lambda message: message.text == "9В")
+def mes_clas_9V(message):
+    global classes_for_message
+    classes_for_message.append('9В')  # добавляем класс в список
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+    back_to_clas_choosing = types.KeyboardButton('К выбору классов')
+    markup.add(back_to_clas_choosing)
+    bot.send_message(message.chat.id,
+                     'Мы запомнили класс.',
+                     reply_markup=markup)
+    mes_clas(message)
+
+
+@bot.message_handler(func=lambda message: message.text == "9Г")
+def mes_clas_9G(message):
+    classes_for_message.append('9Г')  # добавляем класс в список
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+    back_to_clas_choosing = types.KeyboardButton('К выбору классов')
+    markup.add(back_to_clas_choosing)
+    bot.send_message(message.chat.id,
+                     'Мы запомнили класс.',
+                     reply_markup=markup)
+    mes_clas(message)
+
+
+@bot.message_handler(func=lambda message: message.text == "Всем 9 классам")
+def mes_clas_9_all(message):
+    classes_for_message.append('9A')
+    classes_for_message.append('9Б')
+    classes_for_message.append('9В')
+    classes_for_message.append('9Г')
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+    back_to_clas_choosing = types.KeyboardButton('К выбору классов')
+    markup.add(back_to_clas_choosing)
+    bot.send_message(message.chat.id,
+                     'Мы запомнили классы.',
+                     reply_markup=markup)
+    mes_clas(message)
+
+
+##################################################################################################################################################################
+@bot.message_handler(func=lambda message: message.text == "Десятым")
+def mes_clas_10(message):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+    choose_10_A = types.KeyboardButton('10А')
+    choose_10_B = types.KeyboardButton('10Б')
+    choose_10_V = types.KeyboardButton('10В')
+    choose_10_G = types.KeyboardButton(' 10Г')
+    choose_10_all = types.KeyboardButton('Всем 10 классам')
+    back_to_clas_choosing = types.KeyboardButton('К выбору классов')
+    markup.add(choose_10_A, choose_10_B, choose_10_V, choose_10_G, choose_10_all, back_to_clas_choosing)
+    bot.send_message(message.chat.id, 'Какому классу написать?', reply_markup=markup)
+
+
+@bot.message_handler(func=lambda message: message.text == "10А")
+def mes_clas_10A(message):
+    classes_for_message.append('10A')  # добавляем класс в список
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+    back_to_clas_choosing = types.KeyboardButton('К выбору классов')
+    markup.add(back_to_clas_choosing)
+    bot.send_message(message.chat.id,
+                     'Мы запомнили класс.',
+                     reply_markup=markup)
+    mes_clas(message)
+
+
+@bot.message_handler(func=lambda message: message.text == "10Б")
+def mes_clas_10B(message):
+    classes_for_message.append('10Б')  # добавляем класс в список
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+    back_to_clas_choosing = types.KeyboardButton('К выбору классов')
+    markup.add(back_to_clas_choosing)
+    bot.send_message(message.chat.id,
+                     'Мы запомнили класс.',
+                     reply_markup=markup)
+    mes_clas(message)
+
+
+@bot.message_handler(func=lambda message: message.text == "10В")
+def mes_clas_10V(message):
+    classes_for_message.append('10В')  # добавляем класс в список
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+    back_to_clas_choosing = types.KeyboardButton('К выбору классов')
+    markup.add(back_to_clas_choosing)
+    bot.send_message(message.chat.id,
+                     'Мы запомнили класс.',
+                     reply_markup=markup)
+    mes_clas(message)
+
+
+@bot.message_handler(func=lambda message: message.text == "10Г")
+def mes_clas_10G(message):
+    classes_for_message.append('10Г')  # добавляем класс в список
+    print(classes_for_message)
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+    back_to_clas_choosing = types.KeyboardButton('К выбору классов')
+    markup.add(back_to_clas_choosing)
+    bot.send_message(message.chat.id,
+                     'Мы запомнили класс.',
+                     reply_markup=markup)
+    mes_clas(message)
+
+
+@bot.message_handler(func=lambda message: message.text == "Всем 10 классам")
+def mes_clas_10_all(message):
+    classes_for_message.append('10A')
+    classes_for_message.append('10Б')
+    classes_for_message.append('10В')
+    classes_for_message.append('10Г')
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+    back_to_clas_choosing = types.KeyboardButton('К выбору классов')
+    markup.add(back_to_clas_choosing)
+    bot.send_message(message.chat.id,
+                     'Мы запомнили классы.',
+                     reply_markup=markup)
+    mes_clas(message)
+
+
+##############################################################################################
+@bot.message_handler(func=lambda message: message.text == "Одиннадцатым")
+def mes_clas_11(message):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+    choose_11_A = types.KeyboardButton('11А')
+    choose_11_B = types.KeyboardButton('11Б')
+    choose_11_V = types.KeyboardButton('11В')
+    choose_11_G = types.KeyboardButton('11Г')
+    choose_11_all = types.KeyboardButton('Всем 11 классам')
+    back_to_clas_choosing = types.KeyboardButton('/назад')
+    markup.add(choose_11_A, choose_11_B, choose_11_V, choose_11_G, choose_11_all, back_to_clas_choosing)
+    bot.send_message(message.chat.id, 'Какому классу написать?', reply_markup=markup)
+
+
+@bot.message_handler(func=lambda message: message.text == "11А")
+def mes_clas_11A(message):
+    classes_for_message.append('11A')  # добавляем класс в список
+    print(classes_for_message)
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+    back_to_clas_choosing = types.KeyboardButton('К выбору классов')
+    markup.add(back_to_clas_choosing)
+    bot.send_message(message.chat.id,
+                     'Мы запомнили класс.',
+                     reply_markup=markup)
+    mes_clas(message)
+
+
+@bot.message_handler(func=lambda message: message.text == "11Б")
+def mes_clas_11B(message):
+    classes_for_message.append('11Б')  # добавляем класс в список
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+    back_to_clas_choosing = types.KeyboardButton('К выбору классов')
+    markup.add(back_to_clas_choosing)
+    bot.send_message(message.chat.id,
+                     'Мы запомнили класс.',
+                     reply_markup=markup)
+    mes_clas(message)
+
+
+@bot.message_handler(func=lambda message: message.text == "11В")
+def mes_clas_11V(message):
+    classes_for_message.append('11В')  # добавляем класс в список
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+    back_to_clas_choosing = types.KeyboardButton('К выбору классов')
+    markup.add(back_to_clas_choosing)
+    bot.send_message(message.chat.id,
+                     'Мы запомнили класс.',
+                     reply_markup=markup)
+    mes_clas(message)
+
+
+@bot.message_handler(func=lambda message: message.text == "11Г")
+def mes_clas_11G(message):
+    classes_for_message.append('11Г')  # добавляем класс в список
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+    back_to_clas_choosing = types.KeyboardButton('К выбору классов')
+    markup.add(back_to_clas_choosing)
+    bot.send_message(message.chat.id,
+                     'Мы запомнили класс.',
+                     reply_markup=markup)
+    mes_clas(message)
+
+
+@bot.message_handler(func=lambda message: message.text == "Всем 11 классам")
+def mes_clas_11_all(message):
+    classes_for_message.append('11A')
+    classes_for_message.append('11Б')
+    classes_for_message.append('11В')
+    classes_for_message.append('11Г')
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+    back_to_clas_choosing = types.KeyboardButton('К выбору классов')
+    markup.add(back_to_clas_choosing)
+    bot.send_message(message.chat.id,
+                     'Мы запомнили классы.',
+                     reply_markup=markup)
+    mes_clas(message)
+
+
+@bot.message_handler(func=lambda message: message.text == "Сообщить о ошибке")
+def mistake(message):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+    back_to_menu = types.KeyboardButton('Меню')
+    markup.add(back_to_menu)
+    bot.send_message(message.from_user.id,
+                     'Привет, напишите кому либо из нашей команды об ошибке и прикрепите скрин(по возможности)/n @duu3hfh /n @homokissmyasssapien /n @huyachuchachu',
+                     reply_markup=markup)
+
+
+@bot.message_handler(content_types=['text'])
+def admin_message(message):
+    global tag_check
+    global Students_for_message
+    if message.from_user.id in list_of_admins:
+        if '!' in tags_of_admin:
+            c.execute("SELECT TgId FROM Ucheniki")
+            Students = c.fetchall()
+            for i in range(len(Students)):
+                try:
+                    bot.send_message(Students[i][0], message.text)
+                except:
+                    pass
+
+        if tag_check == 1 and message.text not in list_of_tags:
+            markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+            c.execute("INSERT INTO Tags VALUES(?)", (message.text,))
+            tag_check = 0
+            db.commit()
+            bot.send_message(message.chat.id, 'Тег добавлен в базу данных', reply_markup=markup)
+
+        if len(classes_for_message) > 0 and len(tags_of_admin) > 0 and user_id in list_of_admins:
+            if '0' in tags_of_admin:
+                c.execute("SELECT TgId, Class, Tagi FROM Ucheniki")
+                Students = c.fetchall()
+                Students_for_message = []
+                for i in range(len(Students)):
+                    if Students[i][1] in classes_for_message:
+                        Students_for_message.append(Students[i][0])
+            else:
+
+                c.execute("SELECT TgId, Class, Tagi FROM Ucheniki")
+                Students = c.fetchall()
+                Students_for_message = []
+                for i in range(len(Students)):
+
+                    if Students[i][1] in classes_for_message:
+                        for tag in tags_of_admin:
+                            if tag in Students[i][2] and Students[i][0] not in Students_for_message:
+                                Students_for_message.append(Students[i][0])
+
+            for elem in Students_for_message:
+                try:
+                    bot.send_message(elem, message.text)
+                except:
+                    pass
+        '''
+        c.execute("SELECT message_count FROM Metrics")
+        message_count = c.fetchone()[0] + 1
+        c.execute("UPDATE Metrics SET message_count = ? WHERE ROWID = 1", (message_count,))
+        db.commit()
+        '''
+        if len(Students_for_message) != 0:
+            bot.send_message(message.from_user.id, 'Сообщение отправлено')
+        classes_for_message.clear()
+        tags_of_admin.clear()
+        Students_for_message.clear()
+
+
+@bot.message_handler(content_types=['document', 'photo'])
+def handle_docs_photo(message):
+    global classes_for_message
+    if '!' in tags_of_admin:
+        chat_id = message.chat.id
+        file_info = bot.get_file(message.document.file_id)
+        downloaded_file = bot.download_file(file_info.file_path)
+
+        src = 'C:/Users/Andre/photo/' + message.document.file_name;
+        with open(src, 'wb') as new_file:
+            new_file.write(downloaded_file)
+        c.execute("SELECT TgId FROM Ucheniki")
+        Students = c.fetchall()
+        try:
+            for i in range(len(Students)):
+                bot.send_photo(Students[i][0], downloaded_file, message.caption)
+
+        except:
+            for i in range(len(Students)):
+                bot.send_document(Students[i][0], downloaded_file)
+                bot.send_message(Students[i][0], message.caption)
+        tags_of_admin.clear()
+    if len(classes_for_message) > 0 and len(tags_of_admin) > 0 and message.from_user.id in list_of_admins:
+        try:
+            chat_id = message.chat.id
+            description = message.caption
+            file_info = bot.get_file(message.document.file_id)
+            downloaded_file = bot.download_file(file_info.file_path)
+
+            src = 'C:/Users/Andre/photo/' + message.document.file_name;
+            with open(src, 'wb') as new_file:
+                new_file.write(downloaded_file)
+        finally:
+            pass
+
+        c.execute("SELECT TgId, Class, Tagi FROM Ucheniki")
+        Students = c.fetchall()
+        if '0' in tags_of_admin:
+            print(Students)
+            for i in range(len(Students)):
+                if Students[i][1] in classes_for_message:
+                    Students_for_message.append(Students[i][0])
+        else:
+
+            for i in range(len(Students)):
+                if Students[i][1] not in classes_for_message:
+                    for tag in tags_of_admin:
+
+                        if tag in Students[i][2] and Students[i][0] not in Students_for_message:
+                            Students_for_message.append(Students[i][0])
+        try:
+            for elem in Students_for_message:
+                bot.send_photo(elem, downloaded_file, description)
+        except:
+            for elem in Students_for_message:
+                bot.send_document(elem, downloaded_file)
+                bot.send_message(elem, message.caption)
+        classes_for_message.clear()
+        tags_of_admin.clear()
+        Students_for_message.clear()
+        if len(Students_for_message) != 0:
+            bot.send_message(message.from_user.id, 'Сообщение отправлено')
+        '''
+        c.execute("SELECT message_count FROM Metrics")
+        message_count = c.fetchone()[0] + 1
+        c.execute("UPDATE Metrics SET message_count = ? WHERE ROWID = 1", (message_count,))
+        db.commit()
+        '''
+
+db.commit()
+bot.polling(none_stop=True)
