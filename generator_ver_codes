@@ -1,0 +1,65 @@
+from random import *
+A_9 = []
+B_9 = []
+V_9 = []
+G_9 = []
+A_10 = []
+B_10 = []
+V_10 = []
+G_10 = []
+A_11 = []
+B_11 = []
+V_11 = []
+codes_for_admin = []
+for i in range(40):
+    c = 'A9'+str(i)+str(randint(11,100))
+    A_9.append(c)
+print(A_9)
+for i in range(40):
+    c = 'A10'+str(i)+str(randint(11,100))
+    A_10.append(c)
+print(A_10)
+for i in range(40):
+    c = 'A11'+str(i)+str(randint(11,100))
+    A_11.append(c)
+print(A_11)
+############################################
+for i in range(40):
+    c = 'B9'+str(i)+str(randint(11,100))
+    B_9.append(c)
+print(B_9)
+for i in range(40):
+    c = 'B10'+str(i)+str(randint(11,100))
+    B_10.append(c)
+print(B_10)
+for i in range(40):
+    c = 'B11'+str(i)+str(randint(11,100))
+    B_11.append(c)
+print(B_11)
+##########################################
+for i in range(40):
+    c = 'V9'+str(i)+str(randint(11,100))
+    V_9.append(c)
+print(V_9)
+for i in range(40):
+    c = 'V10'+str(i)+str(randint(11,100))
+    V_10.append(c)
+print(V_10)
+for i in range(40):
+    c = 'V11'+str(i)+str(randint(11,100))
+    V_11.append(c)
+print(V_11)
+###########################################
+for i in range(40):
+    c = 'G9'+str(i)+str(randint(11,100))
+    G_9.append(c)
+print(G_9)
+for i in range(40):
+    c = 'G10'+str(i)+str(randint(11,100))
+    G_10.append(c)
+print(G_10)
+##########################################
+for i in range(40):
+    c = 'ADMCOOL'+str(i)+str(randint(11,100))
+    codes_for_admin.append(c)
+print(codes_for_admin)
